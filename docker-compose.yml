@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:13
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: grocery-store
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
