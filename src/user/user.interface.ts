@@ -1,4 +1,5 @@
-export interface User {
-  email: string;
-  password: string;
+import { CreateUserDto } from './dto/create-user.dto';
+
+export interface User extends CreateUserDto {
+  id: number;
 }
