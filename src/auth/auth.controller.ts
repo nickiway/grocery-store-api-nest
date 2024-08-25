@@ -14,7 +14,7 @@ import {
 // import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 // import type { CreateUserDto } from 'src/user/dto/create-user.dto';
@@ -30,7 +30,6 @@ export class AuthController {
     return this.authService.login(signInDto.username, signInDto.password);
   }
 
-  @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;

@@ -29,15 +29,18 @@ import { PassportModule } from '@nestjs/passport';
   imports: [
     ConfigModule.forRoot(),
     UserModule,
-    PassportModule,
+    PassportModule.register({
+      defaultStrategy: 'local',
+    }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '60m' },
     }),
   ],
 
   providers: [AuthService, LocalStrategy],
   controllers: [AuthController],
+  exports: [JwtModule, PassportModule],
 })
 export class AuthModule {}

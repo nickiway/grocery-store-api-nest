@@ -1,6 +1,11 @@
 import * as bcrypt from 'bcrypt';
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -19,12 +24,13 @@ export class AuthService {
     const user = await this.userService.findUserByUsername(username);
 
     const isPasswordValid = await bcrypt.compare(pass, user.password);
+
     if (user && isPasswordValid) {
       const { password, ...result } = user;
       return result;
     }
 
-    return null;
+    throw new BadRequestException('Incorrect password or username');
   }
   async login(username: string, pass: string): Promise<any> {
     const user = await this.validateUser(username, pass);
@@ -40,7 +46,6 @@ export class AuthService {
     const userDb = await this.userService.findUserByUsername(user.username);
     const emailDb = await this.userService.findUserByEmail(user.email);
 
-    console.log(user);
     if (userDb || emailDb) {
       throw new HttpException(
         'User already exists',
