@@ -19,7 +19,6 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
-    ConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],

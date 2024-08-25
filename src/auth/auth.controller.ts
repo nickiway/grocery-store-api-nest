@@ -17,6 +17,7 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 // import type { CreateUserDto } from 'src/user/dto/create-user.dto';
 // import type { AccessToken } from './access-token.interface';
@@ -40,5 +41,10 @@ export class AuthController {
   @Post('register')
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
+  }
+
+  @Post('refresh')
+  refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto);
   }
 }
