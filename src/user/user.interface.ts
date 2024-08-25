@@ -1,5 +1,7 @@
-import { CreateUserDto } from './dto/create-user.dto';
-
-export interface User extends CreateUserDto {
-  id: number;
+export interface NewUser {
+  password: string;
+  username: string;
+  email: string;
+  lastName?: string;
+  firstName?: string;
 }

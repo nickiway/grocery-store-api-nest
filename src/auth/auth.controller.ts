@@ -1,47 +1,43 @@
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client';
 import {
   Body,
   Controller,
-  HttpException,
+  HttpCode,
+  // HttpException,
   HttpStatus,
-  InternalServerErrorException,
+  // InternalServerErrorException,
+  Get,
   Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+// import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
-import type { CreateUserDto } from 'src/user/dto/create-user.dto';
-import type { AccessToken } from './access-token.interface';
+// import type { CreateUserDto } from 'src/user/dto/create-user.dto';
+// import type { AccessToken } from './access-token.interface';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(AuthGuard('local'))
+  @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Request() req: any): Promise<AccessToken> {
-    return this.authService.login(req.user);
+  login(@Body() signInDto: Record<string, any>) {
+    return this.authService.login(signInDto.username, signInDto.password);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Request() req: any) {
+    return req.user;
   }
 
   @Post('register')
-  async register(@Body() body: CreateUserDto): Promise<AccessToken> | never {
-    try {
-      await this.authService.register(body);
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          console.log(e);
-          throw new HttpException(
-            'There is a unique constraint violation, a new user cannot be created with this email',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-    }
-
-    throw new InternalServerErrorException();
+  register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 }

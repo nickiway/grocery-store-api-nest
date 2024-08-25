@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -15,6 +16,10 @@ import { PassportModule } from '@nestjs/passport';
     UserModule,
     AuthModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
+    ConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],

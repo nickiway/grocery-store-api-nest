@@ -15,15 +15,7 @@ model User {
   firstName String?
   lastName  String?
 
+  username String
   password String
 }
 
-model Good {
-  id       Int    @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title       String
-  description String?
-  link        String
-  userId   Int
-}
