@@ -14,8 +14,9 @@ import {
 // import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from './auth.guard';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 // import type { CreateUserDto } from 'src/user/dto/create-user.dto';
 // import type { AccessToken } from './access-token.interface';
@@ -30,6 +31,7 @@ export class AuthController {
     return this.authService.login(signInDto.username, signInDto.password);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;
