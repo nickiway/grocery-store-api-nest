@@ -12,7 +12,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 
-import type { CreateUserDto } from 'src/user/dto/create-user.dto';
+import type { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import type { RefreshTokenDto } from './dto/refresh-token.dto';
 import type { NewUser } from 'src/user/user.interface';
 
