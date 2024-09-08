@@ -19,3 +19,8 @@ model User {
   password String
 }
 
+
+model RefreshToken {
+id       Int     @id @default(autoincrement())
+token    String 
+}

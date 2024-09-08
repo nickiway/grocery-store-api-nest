@@ -7,10 +7,12 @@ import { ConfigModule } from '@nestjs/config';
 import { LocalStrategy } from './local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import { PrismaClient } from '@prisma/client';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule,
     UserModule,
     PassportModule,
     JwtModule.register({
@@ -20,7 +22,13 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
 
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    PrismaClient,
+  ],
   controllers: [AuthController],
   exports: [JwtModule, PassportModule],
 })

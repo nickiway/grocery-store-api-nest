@@ -6,6 +6,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 
@@ -15,20 +16,27 @@ import { UserService } from 'src/user/user.service';
 import type { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import type { RefreshTokenDto } from './dto/refresh-token.dto';
 import type { NewUser } from 'src/user/user.interface';
+import { ConfigService } from '@nestjs/config';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtServices: JwtService,
     private userService: UserService,
+    private prismaService: PrismaClient,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.userService.findUserByUsername(username);
 
+    if (!user)
+      throw new InternalServerErrorException('The user does not exists');
+
     const passwordValid = await bcrypt.compare(pass, user.password);
 
-    if (user && passwordValid) {
+    if (passwordValid) {
       const { password, ...result } = user;
       return result;
     }
@@ -36,14 +44,18 @@ export class AuthService {
     throw new BadRequestException('Incorrect password or username');
   }
 
-  async generateRefreshToken(user: any) {
-    const payload = { sub: user.id, tokenId: uuidv4() };
-    return await this.jwtServices.signAsync(payload, { expiresIn: '7d' });
-  }
+  async generateToken(user: any, expiresIn?: string) {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      tokenId: uuidv4(),
+    };
 
-  async generateAccessToken(user: any) {
-    const payload = { sub: user.id, username: user.username };
-    return await this.jwtServices.signAsync(payload);
+    if (!expiresIn) {
+      return await this.jwtServices.signAsync(payload);
+    }
+
+    return await this.jwtServices.signAsync(payload, { expiresIn });
   }
 
   async login(username: string, pass: string): Promise<any> {
@@ -51,8 +63,17 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException();
 
-    const accessToken = await this.generateAccessToken(user);
-    const refreshToken = await this.generateRefreshToken(user);
+    const accessToken = await this.generateToken(user);
+    const refreshToken = await this.generateToken(
+      user,
+      this.configService.get<string>('refreshTokenLifetime'),
+    );
+
+    await this.prismaService.refreshToken.create({
+      data: {
+        token: refreshToken,
+      },
+    });
 
     return {
       accessToken,
@@ -66,10 +87,7 @@ export class AuthService {
     );
 
     if (user) {
-      throw new HttpException(
-        'User already exists',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -87,10 +105,27 @@ export class AuthService {
     const oldRefreshToken = payload.refreshToken;
     const { sub } = await this.jwtServices.decode(oldRefreshToken);
 
-    const user = await this.userService.findById(sub);
+    const response = await this.prismaService.refreshToken.findFirst({
+      where: {
+        token: oldRefreshToken,
+      },
+    });
 
-    const accessToken = await this.generateRefreshToken(user);
-    const refreshToken = await this.generateAccessToken(user);
+    if (!response) throw new BadRequestException('The token does not exists');
+
+    const user = await this.userService.findById(sub);
+    if (!user) throw new UnauthorizedException('The user does not exists');
+
+    const accessToken = await this.generateToken(user);
+    const refreshToken = await this.generateToken(
+      user,
+      this.configService.get<string>('refreshTokenLifetime'),
+    );
+
+    await this.prismaService.refreshToken.update({
+      where: { id: response.id },
+      data: { token: refreshToken },
+    });
 
     return {
       accessToken,
